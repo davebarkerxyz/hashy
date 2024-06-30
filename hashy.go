@@ -13,7 +13,7 @@ import (
 
 func main() {
 	dirPath := "./"
-	var workers = 1
+	var workers int
 
 	flag.IntVar(&workers, "workers", 1, "number of workers")
 	flag.Usage = printUsage
