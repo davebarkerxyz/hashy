@@ -11,11 +11,13 @@ import (
 	"path/filepath"
 )
 
+const defaultWorkerCount = 1
+
 func main() {
 	dirPath := "./"
 	var workers int
 
-	flag.IntVar(&workers, "workers", 1, "number of workers")
+	flag.IntVar(&workers, "workers", defaultWorkerCount, "number of workers")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -49,10 +51,10 @@ func printUsage() {
 Usage: %s [-h] <path>
 
 -h          Display this help message
--workers    Number of workers (default: 1)
+-workers    Number of workers (default: %d)
 path        Path to walk (default: ./)
 
-`, os.Args[0])
+`, os.Args[0], defaultWorkerCount)
 	os.Exit(0)
 }
 
