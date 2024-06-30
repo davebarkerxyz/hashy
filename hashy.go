@@ -2,6 +2,8 @@ package main
 
 import (
 	"crypto/md5"
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -10,36 +12,48 @@ import (
 )
 
 func main() {
-	path := "./"
-	if len(os.Args) > 1 {
-		if sliceContains(os.Args, "-h") {
-			printUsage()
-			return
-		}
-		path = os.Args[1]
+	dirPath := "./"
+	var workers = 1
+
+	flag.IntVar(&workers, "workers", 1, "number of workers")
+	flag.Usage = printUsage
+	flag.Parse()
+
+	args := flag.Args()
+	if flag.NArg() > 1 {
+		printUsage()
+	} else if flag.NArg() == 1 {
+		dirPath = args[0]
 	}
 
-	hashDir(path)
+	_, err := os.Stat(dirPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			die("Error: %s does not exist.\n", dirPath)
+		} else {
+			die("Error reading %s: %s\n", dirPath, err)
+		}
+	}
+
+	hashDir(dirPath)
 }
 
-func sliceContains(slice []string, testVal string) bool {
-	for _, val := range slice {
-		if val == testVal {
-			return true
-		}
-	}
-	return false
+func die(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format, args...)
+	os.Exit(1)
 }
 
 func printUsage() {
 	fmt.Printf(`Hash every file in supplied path, writing the hash to stdout.
 
-Usage: %s [-h] path
+Usage: %s [-h] <path>
 
--h      Display this help message
-path    Path to walk (default: ./)
+-h          Display this help message
+-workers    Number of workers (default: 1)
+path        Path to walk (default: ./)
 
 `, os.Args[0])
+	os.Exit(0)
 }
 
 func hashDir(dirPath string) {
@@ -49,8 +63,7 @@ func hashDir(dirPath string) {
 		}
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error walking %s at %s: %s", dirPath, path, err)
-			return nil
+			die("Error walking %s at %s: %s", dirPath, path, err)
 		}
 
 		hashFile(path)
@@ -76,7 +89,7 @@ func hashFile(path string) {
 			return
 		}
 
-		fmt.Fprintf(os.Stderr, "Error reading %s: %s", path, err)
+		die("Error reading %s: %s", path, err)
 	}
 
 	fmt.Printf("%x %s\n", hasher.Sum(nil), path)
