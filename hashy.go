@@ -12,7 +12,7 @@ import (
 func main() {
 	path := "./"
 	if len(os.Args) > 1 {
-		if os.Args[1] == "-h" {
+		if sliceContains(os.Args, "-h") {
 			printUsage()
 			return
 		}
@@ -20,6 +20,15 @@ func main() {
 	}
 
 	hashDir(path)
+}
+
+func sliceContains(slice []string, testVal string) bool {
+	for _, val := range slice {
+		if val == testVal {
+			return true
+		}
+	}
+	return false
 }
 
 func printUsage() {
