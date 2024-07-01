@@ -9,15 +9,17 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 )
 
-const defaultWorkerCount = 1
+var defaultWorkerCount = runtime.GOMAXPROCS(0)
 
 func main() {
 	dirPath := "./"
-	var workers int
+	var workerCount int
 
-	flag.IntVar(&workers, "workers", defaultWorkerCount, "number of workers")
+	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -37,7 +39,7 @@ func main() {
 		}
 	}
 
-	hashDir(dirPath)
+	hashDir(dirPath, workerCount)
 }
 
 func die(format string, args ...any) {
@@ -58,7 +60,15 @@ path        Path to walk (default: ./)
 	os.Exit(0)
 }
 
-func hashDir(dirPath string) {
+func hashDir(dirPath string, workerCount int) {
+	jobs := make(chan string, workerCount)
+	wg := new(sync.WaitGroup)
+
+	for w := 0; w < workerCount; w++ {
+		wg.Add(1)
+		go hashWorker(jobs, wg)
+	}
+
 	filepath.WalkDir(dirPath, func(path string, dir fs.DirEntry, err error) error {
 		if dir.IsDir() {
 			return nil
@@ -68,17 +78,27 @@ func hashDir(dirPath string) {
 			die("Error walking %s at %s: %s", dirPath, path, err)
 		}
 
-		hashFile(path)
+		jobs <- path
 
 		return nil
 	})
+	close(jobs)
+
+	wg.Wait()
 }
 
-func hashFile(path string) {
+func hashWorker(jobs chan string, wg *sync.WaitGroup) {
+	for path := range jobs {
+		fmt.Print(hashFile(path))
+	}
+	wg.Done()
+}
+
+func hashFile(path string) string {
 	f, err := os.Open(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening %s: %s", path, err)
-		return
+		fmt.Fprintf(os.Stderr, "Error opening %s: %s\n", path, err)
+		return ""
 	}
 	defer f.Close()
 
@@ -88,11 +108,11 @@ func hashFile(path string) {
 		// This can happen if the file being walked is a symlink that resolves to a directory
 		stat, _ := f.Stat()
 		if stat.IsDir() {
-			return
+			return ""
 		}
 
-		die("Error reading %s: %s", path, err)
+		die("Error reading %s: %s\n", path, err)
 	}
 
-	fmt.Printf("%x %s\n", hasher.Sum(nil), path)
+	return fmt.Sprintf("%x %s\n", hasher.Sum(nil), path)
 }
