@@ -15,6 +15,16 @@ import (
 )
 
 var defaultWorkerCount = runtime.GOMAXPROCS(0)
+var showAllErrors bool
+
+type unsupportedFileError struct {
+	path   string
+	reason string
+}
+
+func (e unsupportedFileError) Error() string {
+	return fmt.Sprintf("unhashable file %s: %s", e.path, e.reason)
+}
 
 func main() {
 	dirPath := "./"
@@ -23,6 +33,7 @@ func main() {
 
 	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
 	flag.StringVar(&exclude, "exclude", "", "list of directories to exclude")
+	flag.BoolVar(&showAllErrors, "show-errors", false, "show all errors (including unhashable file types)")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -65,10 +76,11 @@ func printUsage() {
 
 Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
 
--h          Display this help message
--workers    Number of workers (default: %d)
--exclude    Comma separated list of directories to exclude
-path        Path to walk (default: ./)
+-h             Display this help message
+-workers       Number of workers (default: %d)
+-exclude       Comma separated list of directories to exclude
+-show-errors   Show all errors (including unhashable file types) (default: false)
+path           Path to walk (default: ./)
 
 For example: hashy ~/ -workers 4 -exclude ~/Library,~/.lima
 
@@ -111,16 +123,31 @@ func hashDir(dirPath string, workerCount int, excludeList []string) {
 
 func hashWorker(jobs chan string, wg *sync.WaitGroup) {
 	for path := range jobs {
-		fmt.Print(hashFile(path))
+		hash, err := hashFile(path)
+
+		var badFileErr *unsupportedFileError
+		if err == nil {
+			fmt.Print(hash)
+		} else if !errors.As(err, &badFileErr) || showAllErrors {
+			// Error isn't due to trying to hash non-regular file? Print it.
+			// Otherwise, ignore it (we know we can't hash sockets, etc)
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		}
 	}
 	wg.Done()
 }
 
-func hashFile(path string) string {
+func hashFile(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening %s: %s\n", path, err)
-		return ""
+		// Check if the file is a regular file - if not, ignore the error
+		// as we don't support hashing sockets or other special files
+		// For performance reasons, only stat files if we have an issue opening them
+		finfo, statErr := os.Lstat(path)
+		if statErr != nil || finfo.Mode().IsRegular() {
+			return "", fmt.Errorf("error opening %s: %s", path, err)
+		}
+		return "", &unsupportedFileError{path, "not a regular file"}
 	}
 	defer f.Close()
 
@@ -130,11 +157,11 @@ func hashFile(path string) string {
 		// This can happen if the file being walked is a symlink that resolves to a directory
 		stat, _ := f.Stat()
 		if stat.IsDir() {
-			return ""
+			return "", &unsupportedFileError{path, "directories cannot be hashed (possible symlink to dir)"}
 		}
 
 		die("Error reading %s: %s\n", path, err)
 	}
 
-	return fmt.Sprintf("%x %s\n", hasher.Sum(nil), path)
+	return fmt.Sprintf("%x %s\n", hasher.Sum(nil), path), nil
 }
