@@ -63,14 +63,16 @@ func die(format string, args ...any) {
 func printUsage() {
 	fmt.Printf(`Hash every file in supplied path, writing the hash to stdout.
 
-Usage: %s [-h] <path> [-workers 4] [-exclude path1,path2]
+Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
 
 -h          Display this help message
 -workers    Number of workers (default: %d)
 -exclude    Comma separated list of directories to exclude
 path        Path to walk (default: ./)
 
-`, os.Args[0], defaultWorkerCount)
+For example: hashy ~/ -workers 4 -exclude ~/Library,~/.lima
+
+`, defaultWorkerCount)
 	os.Exit(0)
 }
 
