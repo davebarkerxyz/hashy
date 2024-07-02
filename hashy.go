@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -18,8 +19,10 @@ var defaultWorkerCount = runtime.GOMAXPROCS(0)
 func main() {
 	dirPath := "./"
 	var workerCount int
+	var exclude string
 
 	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
+	flag.StringVar(&exclude, "exclude", "", "list of directories to exclude")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -39,7 +42,17 @@ func main() {
 		}
 	}
 
-	hashDir(dirPath, workerCount)
+	var excludeRaw = strings.Split(exclude, ",")
+	var excludeList []string
+
+	if exclude != "" {
+		for _, dir := range excludeRaw {
+			apath, _ := filepath.Abs(dir + "/")
+			excludeList = append(excludeList, apath)
+		}
+	}
+
+	hashDir(dirPath, workerCount, excludeList)
 }
 
 func die(format string, args ...any) {
@@ -50,17 +63,18 @@ func die(format string, args ...any) {
 func printUsage() {
 	fmt.Printf(`Hash every file in supplied path, writing the hash to stdout.
 
-Usage: %s [-h] <path>
+Usage: %s [-h] <path> [-workers 4] [-exclude path1,path2]
 
 -h          Display this help message
 -workers    Number of workers (default: %d)
+-exclude    Comma separated list of directories to exclude
 path        Path to walk (default: ./)
 
 `, os.Args[0], defaultWorkerCount)
 	os.Exit(0)
 }
 
-func hashDir(dirPath string, workerCount int) {
+func hashDir(dirPath string, workerCount int, excludeList []string) {
 	jobs := make(chan string, workerCount)
 	wg := new(sync.WaitGroup)
 
@@ -72,6 +86,12 @@ func hashDir(dirPath string, workerCount int) {
 	filepath.WalkDir(dirPath, func(path string, dir fs.DirEntry, err error) error {
 		if dir.IsDir() {
 			return nil
+		}
+
+		for _, exclude := range excludeList {
+			if strings.HasPrefix(path, exclude) {
+				return nil
+			}
 		}
 
 		if err != nil {
