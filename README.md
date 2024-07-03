@@ -47,7 +47,7 @@ hashy ~/ -workers 1
 
 You can see the full usage information with `hashy -h`
 
-## Output example
+## 📖 Output example
 
 ```
 dave@purah hashy % ./hashy ~/Downloads/Archive
