@@ -17,6 +17,8 @@ MIT
 
 ### The quick way 
 
+To get the latest version from Github:
+
 - [Install the Go compiler](https://go.dev/doc/install)
 - Download, compile and install hashy in one step: `go install github.com/davebarkerxyz/hashy@latest`
 
@@ -29,6 +31,12 @@ cd hashy
 go build ./...
 go install
 ```
+
+### Pre-built binaries
+
+You can download the latest release builds from [Releases](https://github.com/davebarkerxyz/hashy/releases).
+
+*Note that while cross-compiled builds are created for multiple platform and architecture combinations, only darwin/arm64 (MacOS Apple Silicon) and linux/arm64 (Linux 64-bit ARM) are actively tested.*
 
 ## 🧐 Why did I build this?
 
