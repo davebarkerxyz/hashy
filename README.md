@@ -47,6 +47,17 @@ hashy ~/ -workers 1
 
 You can see the full usage information with `hashy -h`
 
+## Output example
+
+```
+dave@purah hashy % ./hashy ~/Downloads/Archive
+a3c0bd543d9c4224a1af07527a88e497 /Users/dave/Downloads/Archive/JetBrainsMono-2.242/OFL.txt
+08fd688879edce6105e388211d976c3c /Users/dave/Downloads/Archive/JetBrainsMono-2.242/.DS_Store
+e22968d5f6c9cfde83dbb1e2e984dc82 /Users/dave/Downloads/Archive/JetBrainsMono-2.242/fonts/.DS_Store
+177ff1d368916a567c896c0c3a2d7bc4 /Users/dave/Downloads/Archive/JetBrainsMono-2.242/AUTHORS.txt
+...
+```
+
 ## 🐆 Performance
 
 On my M1 MacBook Pro 14 (2021) internal SSD, hashing my 278GB home directory under the default configuration (workers = GOMAXPROCS, in my case that was 10), it took 6m57s.
