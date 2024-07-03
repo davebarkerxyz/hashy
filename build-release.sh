@@ -20,9 +20,20 @@ for target in $TARGETS
 do
     platform=$(echo $target | cut -d/ -f1)
     arch=$(echo $target | cut -d/ -f2)
+
+    if [ $platform = "windows" ]
+      then
+        extension=".exe"
+      else
+        extension=""
+    fi
+
     echo Building for $platform/$arch...
-    GOOS=$platform GOARCH=$arch go build -o build/$version/hashy-$platform-$arch -ldflags="-X main.version=$version" ./
+    GOOS=$platform GOARCH=$arch go build -o build/$version/hashy-$platform-$arch$extension -ldflags="-X main.version=$version" ./
 done
 
+echo Tagging $version...
 git tag -a $version -m "Release $version"
+
+echo Pushing tag...
 git push origin $version
