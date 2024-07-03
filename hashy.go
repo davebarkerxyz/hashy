@@ -35,7 +35,7 @@ func main() {
 	var exclude string
 
 	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
-	flag.StringVar(&exclude, "exclude", "", "list of directories to exclude")
+	flag.StringVar(&exclude, "exclude", "", "comma-separated list of directories to exclude")
 	flag.BoolVar(&showAllErrors, "show-errors", false, "show all errors (including unhashable file types)")
 	flag.BoolVar(&debug, "debug", false, "print debug output")
 	flag.Usage = printUsage
@@ -86,16 +86,9 @@ func printUsage() {
 
 Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
 
--h             Display this help message
--workers       Number of workers (default: %d)
--exclude       Comma separated list of directories to exclude
--show-errors   Show all errors (including unhashable file types) (default: false)
--debug         Print debug output
-path           Path to walk (default: ./)
-
-For example: hashy ~/ -workers 4 -exclude $HOME/Library,$HOME/.lima
-
-`, defaultWorkerCount)
+`)
+	flag.PrintDefaults()
+	fmt.Printf("\nFor example: hashy ~/ -workers 4 -exclude $HOME/Library,$HOME/.lima\n\n")
 	os.Exit(0)
 }
 

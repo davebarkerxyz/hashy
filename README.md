@@ -33,6 +33,24 @@ It was also an excuse to sharpen my Go skills. There's no promise the Go code he
 
 ## ⌨️ Usage
 
+```
+dave@purah hashy % hashy -h
+Hash every file in supplied path, writing the hash to stdout.
+
+Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
+
+  -debug
+        print debug output
+  -exclude string
+        comma-separated list of directories to exclude
+  -show-errors
+        show all errors (including unhashable file types)
+  -workers int
+        number of workers (default 10)
+
+For example: hashy ~/ -workers 4 -exclude $HOME/Library,$HOME/.lima
+```
+
 To hash your home directory and exclude the *Library* and *.lima* subdirectories:
 
 ```
