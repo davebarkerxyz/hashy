@@ -36,7 +36,7 @@ It was also an excuse to sharpen my Go skills. There's no promise the Go code he
 To hash your home directory and exclude the *Library* and *.lima* subdirectories:
 
 ```
-hashy ~/ -exclude ~/Library,~/.lima
+hashy ~/ -exclude $HOME/Library,$HOME/.lima
 ```
 
 To run with only a single worker:
@@ -71,3 +71,5 @@ Performance could have been further improved if I could avoid `stat`ing every fi
 ## 🖊️ Notes
 
 Symlinks are ignored and not followed. Non-regular files (named pipes, etc) are also ignored.
+
+You should use `$HOME` when specifying multiple exclude directories, e.g. `hashy ~/ -exclude $HOME/Library,$HOME/.lima` as your shell will probably not expand tildes mid-string in the comma separated exclude list e.g. `hashy ~/ -exclude ~/Library,~/.lima`.

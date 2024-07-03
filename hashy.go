@@ -93,7 +93,7 @@ Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
 -debug         Print debug output
 path           Path to walk (default: ./)
 
-For example: hashy ~/ -workers 4 -exclude ~/Library,~/.lima
+For example: hashy ~/ -workers 4 -exclude $HOME/Library,$HOME/.lima
 
 `, defaultWorkerCount)
 	os.Exit(0)
