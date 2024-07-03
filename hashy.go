@@ -158,7 +158,7 @@ func hashFile(path string, id int) (string, error) {
 	// We have to do this every time despite the performance impact as named piped will
 	// "open" and can be read with io.Copy but block the goroutine and never finish reading
 	dPrint("%d: statting %s", id, path)
-	stat, statErr := os.Stat(path)
+	stat, statErr := os.Lstat(path)
 	if statErr != nil {
 		return "", fmt.Errorf("error statting %s: %s", path, statErr)
 	}
