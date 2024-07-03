@@ -37,3 +37,4 @@ git tag -a $version -m "Release $version"
 
 echo Pushing tag...
 git push origin $version
+git push
