@@ -19,6 +19,7 @@ import (
 var defaultWorkerCount = runtime.GOMAXPROCS(0)
 var showAllErrors bool
 var debug bool
+var version = "latest"
 
 type unsupportedFileError struct {
 	path   string
@@ -33,13 +34,20 @@ func main() {
 	dirPath := "./"
 	var workerCount int
 	var exclude string
+	var versionFlag bool
 
 	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
 	flag.StringVar(&exclude, "exclude", "", "comma-separated list of directories to exclude")
 	flag.BoolVar(&showAllErrors, "show-errors", false, "show all errors (including unhashable file types)")
 	flag.BoolVar(&debug, "debug", false, "print debug output")
+	flag.BoolVar(&versionFlag, "version", false, "print version")
 	flag.Usage = printUsage
 	flag.Parse()
+
+	if versionFlag {
+		fmt.Printf("hashy version: %s\n", version)
+		os.Exit(0)
+	}
 
 	args := flag.Args()
 	if flag.NArg() > 1 {
