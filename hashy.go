@@ -12,10 +12,13 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/davebarkerxyz/hashy/internal/util"
 )
 
 var defaultWorkerCount = runtime.GOMAXPROCS(0)
 var showAllErrors bool
+var debug bool
 
 type unsupportedFileError struct {
 	path   string
@@ -34,6 +37,7 @@ func main() {
 	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
 	flag.StringVar(&exclude, "exclude", "", "list of directories to exclude")
 	flag.BoolVar(&showAllErrors, "show-errors", false, "show all errors (including unhashable file types)")
+	flag.BoolVar(&debug, "debug", false, "print debug output")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -47,9 +51,9 @@ func main() {
 	_, err := os.Stat(dirPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			die("Error: %s does not exist.\n", dirPath)
+			util.Die("Error: %s does not exist.\n", dirPath)
 		} else {
-			die("Error reading %s: %s\n", dirPath, err)
+			util.Die("Error reading %s: %s\n", dirPath, err)
 		}
 	}
 
@@ -63,12 +67,18 @@ func main() {
 		}
 	}
 
+	dPrint("\033[2J")
+
 	hashDir(dirPath, workerCount, excludeList)
 }
 
-func die(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format, args...)
-	os.Exit(1)
+func dPrint(format string, args ...any) bool {
+	if debug {
+		util.TermPrint(format, args...)
+		return true
+	} else {
+		return false
+	}
 }
 
 func printUsage() {
@@ -80,6 +90,7 @@ Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
 -workers       Number of workers (default: %d)
 -exclude       Comma separated list of directories to exclude
 -show-errors   Show all errors (including unhashable file types) (default: false)
+-debug         Print debug output
 path           Path to walk (default: ./)
 
 For example: hashy ~/ -workers 4 -exclude ~/Library,~/.lima
@@ -94,7 +105,7 @@ func hashDir(dirPath string, workerCount int, excludeList []string) {
 
 	for w := 0; w < workerCount; w++ {
 		wg.Add(1)
-		go hashWorker(jobs, wg)
+		go hashWorker(w, jobs, wg)
 	}
 
 	filepath.WalkDir(dirPath, func(path string, dir fs.DirEntry, err error) error {
@@ -109,7 +120,7 @@ func hashDir(dirPath string, workerCount int, excludeList []string) {
 		}
 
 		if err != nil {
-			die("Error walking %s at %s: %s", dirPath, path, err)
+			util.Die("Error walking %s at %s: %s", dirPath, path, err)
 		}
 
 		jobs <- path
@@ -121,47 +132,59 @@ func hashDir(dirPath string, workerCount int, excludeList []string) {
 	wg.Wait()
 }
 
-func hashWorker(jobs chan string, wg *sync.WaitGroup) {
+func hashWorker(id int, jobs chan string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	for path := range jobs {
-		hash, err := hashFile(path)
+		hash, err := hashFile(path, id)
 
 		var badFileErr *unsupportedFileError
 		if err == nil {
-			fmt.Print(hash)
+			if !dPrint("%d: %s", id, hash) {
+				fmt.Printf("%s\n", hash)
+			}
 		} else if !errors.As(err, &badFileErr) || showAllErrors {
 			// Error isn't due to trying to hash non-regular file? Print it.
 			// Otherwise, ignore it (we know we can't hash sockets, etc)
 			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		}
 	}
-	wg.Done()
+
+	dPrint("%d: worker done", id)
 }
 
-func hashFile(path string) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		// Check if the file is a regular file - if not, ignore the error
-		// as we don't support hashing sockets or other special files
-		// For performance reasons, only stat files if we have an issue opening them
-		finfo, statErr := os.Lstat(path)
-		if statErr != nil || finfo.Mode().IsRegular() {
-			return "", fmt.Errorf("error opening %s: %s", path, err)
-		}
+func hashFile(path string, id int) (string, error) {
+	// Check if file is regular file
+	// We have to do this every time despite the performance impact as named piped will
+	// "open" and can be read with io.Copy but block the goroutine and never finish reading
+	dPrint("%d: statting %s", id, path)
+	stat, statErr := os.Stat(path)
+	if statErr != nil {
+		return "", fmt.Errorf("error statting %s: %s", path, statErr)
+	}
+
+	fileMode := stat.Mode()
+	dPrint("%d: %s (%t) %s", id, fileMode.String(), fileMode.IsRegular(), path)
+
+	if !fileMode.IsRegular() {
 		return "", &unsupportedFileError{path, "not a regular file"}
 	}
-	defer f.Close()
 
-	hasher := md5.New()
-	if _, err := io.Copy(hasher, f); err != nil {
-		// Check if the file is a directory
-		// This can happen if the file being walked is a symlink that resolves to a directory
-		stat, _ := f.Stat()
-		if stat.IsDir() {
-			return "", &unsupportedFileError{path, "directories cannot be hashed (possible symlink to dir)"}
-		}
-
-		die("Error reading %s: %s\n", path, err)
+	dPrint("%d: opening %s", id, path)
+	f, err := os.Open(path)
+	dPrint("%d: opened %s", id, path)
+	if err != nil {
+		return "", fmt.Errorf("error opening %s: %s", path, err)
 	}
 
-	return fmt.Sprintf("%x %s\n", hasher.Sum(nil), path), nil
+	defer f.Close()
+
+	dPrint("%d: hashing %s", id, path)
+	hasher := md5.New()
+	if _, err := io.Copy(hasher, f); err != nil {
+		util.Die("Error reading %s: %s\n", path, err)
+	}
+	dPrint("%d: hashed %s", id, path)
+
+	return fmt.Sprintf("%x %s", hasher.Sum(nil), path), nil
 }
