@@ -80,6 +80,14 @@ hashy ~/ -workers 1
 
 You can see the full usage information with `hashy -h`
 
+## 📼 Demo
+
+Hashing 1.1GB across approx 36,400 files in around 1.6s:
+
+![Animated terminal recording showing hashy hashing a large number of files very quickly](docs/hashy.gif)
+
+Recorded with the super useful [charmbracelet/vhs](https://github.com/charmbracelet/vhs).
+
 ## 📖 Output example
 
 ```
