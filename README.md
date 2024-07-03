@@ -15,14 +15,19 @@ MIT
 
 ## Building hashy
 
-[Install the Go compiler](https://go.dev/doc/install)
+### The quick way 
 
-Clone and compile hashy:
+- [Install the Go compiler](https://go.dev/doc/install)
+- Download, compile and install hashy in one step: `go install github.com/davebarkerxyz/hashy@latest`
+
+
+### The long way
 
 ```
 git clone https://github.com/davebarkerxyz/hashy
 cd hashy
-go build
+go build ./...
+go install
 ```
 
 ## 🧐 Why did I build this?
