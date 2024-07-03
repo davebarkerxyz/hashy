@@ -13,6 +13,18 @@ Hashy generates md5 hashes of directory trees using multiple threads for pretty 
 
 MIT
 
+## Building hashy
+
+[Install the Go compiler](https://go.dev/doc/install)
+
+Clone and compile hashy:
+
+```
+git clone https://github.com/davebarkerxyz/hashy
+cd hashy
+go build
+```
+
 ## 🧐 Why did I build this?
 
 I was looking for an easy way to verify a backup of my (huge) MacOS home directory to make sure that the backups remained consistent when moving between media (replacing failing backups HDDs with SSDs). `find` piped to `md5` (or `md5sum` on Linux) was *ok*, but excluding paths without descending into or statting them was tricky and the syntax was opaque, to say the least.
@@ -41,7 +53,9 @@ On my M1 MacBook Pro 14 (2021) internal SSD, hashing my 278GB home directory und
 
 Setting workers to 1 (single-threading the hashing, but leaving the main thread to handle setup and cleanup), hashing the same tree took 16m02s.
 
-Performance could possibly have been improved if I could avoid `stat`ing every file before opening, but this was unavoidable as opening a named pipe causes `os.Open()` to block and never return, blocking a goroutine until you kill the process. The only way we can avoid that is by `stat`ing each file and making sure we only open regular files.
+*Note: testing wasn't under any sort of controlled conditions (the MacBook is my daily driver and had been running for a few hours with several applications running during testing, and the files in my home directory vary from a few bytes to tens of gigabytes), but it's probably representative of performance under typical use.*
+
+Performance could have been further improved if I could avoid `stat`ing every file before opening, but this was unavoidable as opening a named pipe causes `os.Open()` to block and never return, blocking a goroutine until you kill the process. The only way we can avoid that is by `stat`ing each file and making sure we only open regular files.
 
 ## 🖊️ Notes
 
