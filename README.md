@@ -58,6 +58,8 @@ Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
         comma-separated list of directories to exclude
   -show-errors
         show all errors (including unhashable file types)
+  -version
+        print version
   -workers int
         number of workers (default 10)
 
