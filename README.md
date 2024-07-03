@@ -29,7 +29,7 @@ go build
 
 I was looking for an easy way to verify a backup of my (huge) MacOS home directory to make sure that the backups remained consistent when moving between media (replacing failing backups HDDs with SSDs). `find` piped to `md5` (or `md5sum` on Linux) was *ok*, but excluding paths without descending into or statting them was tricky and the syntax was opaque, to say the least.
 
-It was also an excuse to sharpen my Go skills (though there's no promise the Go code here is any *good*, but the tool fulfils my requirements). Mostly hashy is just for me, but someone else might find it useful.
+It was also an excuse to sharpen my Go skills. There's no promise the Go code here is *pretty*, but it is simple. Mostly, hashy is just for me, but someone else might find it useful.
 
 ## ⌨️ Usage
 
@@ -42,7 +42,7 @@ hashy ~/ -exclude ~/Library,~/.lima
 To run with only a single worker:
 
 ```
-hashy ~/ -workers 1`
+hashy ~/ -workers 1
 ```
 
 You can see the full usage information with `hashy -h`
