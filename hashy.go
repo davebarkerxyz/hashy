@@ -36,11 +36,14 @@ func main() {
 	var exclude string
 	var versionFlag bool
 
-	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "number of workers")
-	flag.StringVar(&exclude, "exclude", "", "comma-separated list of directories to exclude")
-	flag.BoolVar(&showAllErrors, "show-errors", false, "show all errors (including unhashable file types)")
-	flag.BoolVar(&debug, "debug", false, "print debug output")
-	flag.BoolVar(&versionFlag, "version", false, "print version")
+	flag.IntVar(&workerCount, "workers", defaultWorkerCount, "")
+	flag.IntVar(&workerCount, "w", defaultWorkerCount, "")
+	flag.StringVar(&exclude, "exclude", "", "")
+	flag.StringVar(&exclude, "x", "", "s")
+	flag.BoolVar(&showAllErrors, "show-errors", false, "")
+	flag.BoolVar(&debug, "debug", false, "")
+	flag.BoolVar(&versionFlag, "version", false, "")
+	flag.BoolVar(&versionFlag, "v", false, "")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -90,13 +93,20 @@ func dPrint(format string, args ...any) bool {
 }
 
 func printUsage() {
-	fmt.Printf(`Hash every file in supplied path, writing the hash to stdout.
+	fmt.Printf(`Recursively every file in supplied path, writing the hash to stdout.
 
-Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
+Usage: hashy [-hv] [-w number] [-x path1,path2] path
+
+-h                        show this help message
+-x,exclude path1,path1    comma-separated list of directories to exclude
+-w,-workers number        number of workers
+-v,-version               show version number
+-debug                    enable debug output
+-show-errors              show normally-suppressed errors (like skipping non-regular files)
+
+Example: hashy -x $HOME/Library,$HOME/.lima ~/
 
 `)
-	flag.PrintDefaults()
-	fmt.Printf("\nFor example: hashy ~/ -workers 4 -exclude $HOME/Library,$HOME/.lima\n\n")
 	os.Exit(0)
 }
 
