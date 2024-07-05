@@ -48,22 +48,19 @@ It was also an excuse to sharpen my Go skills. There's no promise the Go code he
 
 ```
 dave@purah hashy % hashy -h
-Hash every file in supplied path, writing the hash to stdout.
+Recursively hash every file in supplied path, writing the hash to stdout.
 
-Usage: hashy [-h] <path> [-workers 4] [-exclude path1,path2]
+Usage: hashy [-hv] [-a algorithm] [-w number] [-x path1,path2] path
 
-  -debug
-        print debug output
-  -exclude string
-        comma-separated list of directories to exclude
-  -show-errors
-        show all errors (including unhashable file types)
-  -version
-        print version
-  -workers int
-        number of workers (default 10)
+-a,algorithm algorithm    hash algorithm: md5, sha1, sha256, sha512 (default: md5)
+-debug                    enable debug output
+-h                        show this help message
+-show-errors              show normally-suppressed errors (like skipping non-regular files)
+-v,-version               show version number
+-w,-workers number        number of workers (default: 10)
+-x,exclude path1,path1    comma-separated list of directories to exclude
 
-For example: hashy ~/ -workers 4 -exclude $HOME/Library,$HOME/.lima
+Example: hashy -a sha256 -x $HOME/Library,$HOME/.lima ~/
 ```
 
 To hash your home directory and exclude the *Library* and *.lima* subdirectories:
