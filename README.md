@@ -79,7 +79,7 @@ You can see the full usage information with `hashy -h`
 
 ## 📼 Demo
 
-Hashing 1.1GB across approx 36,400 files in around 1.6s:
+Hashing 2.8GB across approx 38,000 files in around 2.9s:
 
 ![Animated terminal recording showing hashy hashing a large number of files very quickly](docs/hashy.gif)
 

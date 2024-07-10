@@ -1,5 +1,5 @@
 Output hashy.gif
-Set Theme "neobones_light
+Set Theme Bubbles
 
 Require echo
 
