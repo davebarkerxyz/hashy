@@ -41,7 +41,7 @@ tasks:
       - echo "Building for {{.TARGET_OS}} on {{.TARGET_ARCH}}..."
       - go build -o build/{{.VERSION}}/{{.BINARY_NAME}}-{{.TARGET_OS}}-{{.TARGET_ARCH}}{{.EXTENSION}} -ldflags="-X main.version={{.VERSION}}" ./
 
-  build-release:
+  release:
     desc: Build for all platforms and create (and push) git release 
     cmds:
       - task: build-all
