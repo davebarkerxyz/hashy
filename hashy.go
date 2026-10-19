@@ -125,13 +125,13 @@ func printUsage() {
 
 Usage: hashy [-hv] [-a algorithm] [-w number] [-x path1,path2] path
 
--a,algorithm algorithm    hash algorithm: md5, sha1, sha256, sha512 (default: md5)
--debug                    enable debug output
--h                        show this help message
--show-errors              show normally-suppressed errors (like skipping non-regular files)
--v,-version               show version number
--w,-workers number        number of workers (default: %d)
--x,exclude path1,path1    comma-separated list of directories to exclude
+    -a,algorithm algorithm    hash algorithm: md5, sha1, sha256, sha512 (default: md5)
+    -debug                    enable debug output
+    -h                        show this help message
+    -show-errors              show normally-suppressed errors (like skipping non-regular files)
+    -v,-version               show version number
+    -w,-workers number        number of workers (default: %d)
+    -x,exclude path1,path1    comma-separated list of directories to exclude
 
 Example: hashy -a sha256 -x $HOME/Library,$HOME/.lima ~/
 
