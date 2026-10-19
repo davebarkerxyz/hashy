@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  BINARY_NAME: hashy
+  PLATFORMS:
+    - { os: linux, arch: amd64 }
+    - { os: linux, arch: arm64 }
+    - { os: darwin, arch: arm64 }
+    - { os: windows, arch: amd64, ext: .exe }
+  VERSION: '{{.VERSION | default .ENV_VERSION | default "dev"}}'
+
+tasks:
+  build:
+    desc: Build the application for all targeted platforms
+    cmds:
+      - for: { var: PLATFORMS }
+        task: compile
+        vars:
+          TARGET_OS: '{{.ITEM.os}}'
+          TARGET_ARCH: '{{.ITEM.arch}}'
+          EXTENSION: '{{.ITEM.ext | default ""}}'
+  compile:
+    internal: true
+    cmds:
+      - echo "Building for {{.TARGET_OS}} on {{.TARGET_ARCH}}..."
+      - env GOOS={{.TARGET_OS}} GOARCH={{.TARGET_ARCH}} go build -o build/{{.VERSION}}/{{.BINARY_NAME}}-{{.TARGET_OS}}-{{.TARGET_ARCH}}{{.EXTENSION}} -ldflags="-X main.version={{.VERSION}}" ./
+      - git tag -a {{.VERSION}} -m "Release {{.VERSION}}"
+      - git push origin {{.VERSION}}
+      - git push
